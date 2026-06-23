@@ -1,11 +1,10 @@
 {
   "build": {
     "builder": "nixpacks",
-    "buildCommand": "apt-get update -y && apt-get install -y ffmpeg && npm run build"
+    "buildCommand": "npm run build"
   },
   "deploy": {
     "startCommand": "npm run start",
-    "restartPolicyType": "on-failure",
     "healthcheckPath": "/"
   }
 }

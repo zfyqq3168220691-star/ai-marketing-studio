@@ -22,9 +22,19 @@ const SHOT_DURATION = 3;
 const TEMP_DIR = path.join(os.tmpdir(), "ai-marketing-video");
 
 function getFfmpegPath(): string | null {
+  // 1. 环境变量覆盖
+  if (process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
+
+  // 2. Linux 系统路径（Railway 通过 apt-get 安装的位置）
+  const linuxPaths = ["/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg"];
+  for (const p of linuxPaths) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  // 3. Windows 本地开发路径
   const localPath = path.join(process.cwd(), "tools", "ffmpeg.exe");
   if (fs.existsSync(localPath)) return localPath;
-  if (process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
+
   return null;
 }
 

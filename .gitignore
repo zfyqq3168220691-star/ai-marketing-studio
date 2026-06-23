@@ -19,6 +19,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# large binaries (installed by Railway via apt-get)
+/tools/
+
 # env files
 .env*.local
 .env

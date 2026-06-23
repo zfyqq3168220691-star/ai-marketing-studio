@@ -136,11 +136,6 @@ async function generateShotImages(
     }
 
     results.push({ shot, imageUrl });
-
-    // 串行 + 短暂间隔避免 Qwen-Image 频率限制（Throttling.RateQuota）
-    if (i < storyboard.length - 1) {
-      await new Promise((r) => setTimeout(r, 1500));
-    }
   }
 
   return results;
@@ -160,30 +155,20 @@ function isNarrativeShot(camera: string): boolean {
 async function generateShotVideos(
   shots: { shot: StoryboardItem; imageUrl: string }[]
 ): Promise<ShotResult[]> {
-  const results: ShotResult[] = [];
-
-  for (let i = 0; i < shots.length; i++) {
-    const { shot, imageUrl } = shots[i];
+  const tasks = shots.map(async ({ shot, imageUrl }) => {
     try {
       const imgRes = await fetch(imageUrl);
       const imgBuf = Buffer.from(await imgRes.arrayBuffer());
       const base64 = imgBuf.toString("base64");
       const mime = "image/png";
       const videoPrompt = `${shot.scene}, ${shot.camera}, smooth gentle motion, cinematic shallow depth of field, warm golden lighting, soft background bokeh, premium commercial quality, stable natural movement`;
-
       const videoUrl = await wanImageToVideo(base64, mime, videoPrompt, SHOT_DURATION);
-      results.push({ shot: shot.shot, imageUrl, videoUrl } as ShotResult);
+      return { shot: shot.shot, imageUrl, videoUrl } as ShotResult;
     } catch {
-      results.push({ shot: shot.shot, imageUrl } as ShotResult);
+      return { shot: shot.shot, imageUrl } as ShotResult;
     }
-
-    // 每个 i2v 调用间隔 2 秒避免限流
-    if (i < shots.length - 1) {
-      await new Promise((r) => setTimeout(r, 2000));
-    }
-  }
-
-  return results;
+  });
+  return Promise.all(tasks);
 }
 
 async function tryConcatVideos(shotResults: ShotResult[]): Promise<string | null> {

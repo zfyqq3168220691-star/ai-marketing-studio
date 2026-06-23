@@ -3,11 +3,13 @@ export const AI_CONFIG = {
   deepseek: {
     baseUrl: "https://api.deepseek.com",
     model: "deepseek-chat",
-    timeoutMs: 30_000,
-  },
-  qwen: {
     timeoutMs: 60_000,
   },
+  qwen: {
+    timeoutMs: 90_000,
+  },
+  /** 超时后最多重试次数（首次请求不计入） */
+  retryAttempts: 2,
 } as const;
 
 export function getApiKey(): string {
